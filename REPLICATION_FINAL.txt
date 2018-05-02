@@ -1,0 +1,74 @@
+// Open powershell
+cd Desktop 
+mkdir mongo_replicate 
+cd mongo_replicate 
+mkdir mongo1 
+mkdir mongo2 
+mkdir mongo3 
+
+//"book" --name of replset
+//"localhost" --name of the server or the IP address
+//"./mongo1" --name of the folder
+//"27017"  --portnumber
+
+mongod --replSet "book" --bind_ip localhost --dbpath ./mongo1 --port 27017
+//Do not close ^^ powershell
+
+// Open new powershell
+cd Desktop/mongo_replicate 
+mongod --replSet "book" --bind_ip localhost --dbpath ./mongo2 --port 27018 
+//Do not close ^^ powershell
+
+// Open new powershell
+cd Desktop/mongo_replicate 
+mongod --replSet "book" --bind_ip localhost --dbpath ./mongo3 --port 27019 
+// Do not close powershell
+
+// Open new powershell
+cd Desktop/mongo_replicate 
+mongo --host localhost:27017 book 
+
+var cfg = { 
+	"_id": "book", 
+	"version": 1, 
+	"members": [ 
+		{ 
+		"_id": 0, 
+		"host": "localhost:27017", 
+		"priority": 1 
+		}, 
+		{ 
+		"_id": 1, 
+		"host": "localhost:27018", 
+		"priority": 0 
+		}, 
+		{ 
+		"_id": 2, 
+		"host": "localhost:27019", 
+		"priority": 0 
+		} 
+	] 
+} 
+rs.initiate( cfg ); 
+
+// Use rs.conf{} to display the replica set configuration object:
+rs.conf();
+
+// Use rs.status() to identify the primary in the replica set:
+
+
+exit
+
+//IMPORT DATA HERE
+mongoimport --port 27017 --db book --collection games --file "C:\Users\Maida Bruce\Desktop\Data\db\Video_Games_5.json"
+
+
+//ctrl + c on powershell running 27017
+
+mongo --host localhost:27018 book
+
+db.setSlaveOk();
+
+db.games.count();
+
+//count should be total number of entries in file (231,780)

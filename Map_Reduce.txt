@@ -1,0 +1,178 @@
+map1 = function () { 
+emit( 
+this.asin, 
+this.overall 
+); 
+} 
+
+reduce1 = function(key,values) { 
+var total = 0; 
+var total2 = 0; 
+for( var i = 0; i < values.length; i++) { 
+total += values[i] / values.length; 
+total2 += values[i]; 
+} 
+return { average: total, 
+count: values.length, 
+totalscore: total2 }; 
+} 
+
+results = db.runCommand({ 
+mapReduce: 'games', 
+map: map1, 
+reduce: reduce1, 
+out: 'games.answer1' 
+}); 
+
+db.games.answer1.find().pretty() 
+
+-------------------------------------------------------------------------------
+
+modeArray = function(numbers) { 
+var modes = [], count = [], i, number, maxIndex = 0;
+ 
+    for (i = 0; i < numbers.length; i += 1) {
+        number = numbers[i];
+        count[number] = (count[number] || 0) + 1;
+        if (count[number] > maxIndex) {
+            maxIndex = count[number];
+        }
+    }
+ 
+    for (i in count)
+        if (count.hasOwnProperty(i)) {
+            if (count[i] === maxIndex) {
+                modes.push(Number(i));
+            }
+        }
+ 
+    return modes;
+}
+
+db.system.js.save({ 
+_id: 'modeArray', 
+value: modeArray 
+}) 
+
+map2 = function () { 
+emit( 
+this.asin, 
+this.overall 
+); 
+} 
+
+reduce2 = function(key,values) { 
+mode = modeArray(values); 
+avgmode = 0; 
+if (mode.length === 1) { 
+return mode[0] 
+} else { 
+for( var i = 0; i < mode.length; i++) { 
+ avgmode += mode[i] / mode.length; 
+}
+return avgmode ;
+} } 
+
+results = db.runCommand({ 
+mapReduce: 'games', 
+map: map2, 
+reduce: reduce2, 
+out: 'games.answer2' 
+}); 
+
+db.games.answer2.find().pretty() 
+
+--------------------------------------------------------------
+
+map3 = function () { 
+emit( 
+this.asin, 
+this.overall 
+); 
+} 
+
+reduce3 = function(key,values) { 
+var count1 = 0; 
+var count2 = 0;
+var count3 = 0;
+var count4 = 0;
+var count5 = 0; 
+for( var i = 0; i < values.length; i++) { 
+if (values[i] === 1) { 
+count1++ 
+} else if (values[i] === 2) { 
+count2++ 
+} else if (values[i] === 3) { 
+count3++ 
+} else if (values[i] === 4) { 
+count4++ 
+} else { 
+count5++ 
+} } 
+return { CountOf1: count1, 
+CountOf2: count2, 
+CountOf3: count3, 
+CountOf4: count4, 
+CountOf5: count5 }; 
+} 
+
+results = db.runCommand({ 
+mapReduce: 'games', 
+map: map3, 
+reduce: reduce3, 
+out: 'games.answer3' 
+}); 
+
+db.games.answer3.find().pretty() 
+
+------------------------------------------------------------------------
+
+
+map4 = function () { 
+emit( 
+this.asin, 
+this.overall 
+); 
+} 
+
+reduce4 = function(key,values) { 
+var count1 = 0; 
+var count2 = 0;
+var count3 = 0;
+var count4 = 0;
+var count5 = 0; 
+for( var i = 0; i < values.length; i++) { 
+if (values[i] === 1) { 
+count1++ 
+} else if (values[i] === 2) { 
+count2++ 
+} else if (values[i] === 3) { 
+count3++ 
+} else if (values[i] === 4) { 
+count4++ 
+} else { 
+count5++ 
+} } 
+var perc1 = count1 / values.length; 
+var perc2 = count2 / values.length; 
+var perc3 = count3 / values.length; 
+var perc4 = count4 / values.length; 
+var perc5 = count5 / values.length; 
+return { PercOf1: perc1, 
+PercOf2: perc2, 
+PercOf3: perc3, 
+PercOf4: perc4, 
+PercOf5: perc5 }; 
+} 
+
+results = db.runCommand({ 
+mapReduce: 'games', 
+map: map4, 
+reduce: reduce4, 
+out: 'games.answer4' 
+}); 
+
+db.games.answer4.find().pretty() 
+
+--------------------------------------------------------------------------------
+

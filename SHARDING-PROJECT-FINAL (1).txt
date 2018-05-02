@@ -1,0 +1,203 @@
+
+//FOR WINDOWS
+
+// Open Powershell (1)
+//Create main working folder (mongo_sharding), config server folders, node folders, and mongos folder
+
+cd Desktop
+mkdir mongo_sharding
+cd mongo_sharding
+mkdir config
+mkdir config2
+mkdir config3
+
+mkdir node10
+mkdir node11
+mkdir node12
+
+mkdir node20
+mkdir node21
+mkdir node22
+
+mkdir node30
+mkdir node31
+mkdir node33
+
+mkdir mongos
+
+//initialize config server 1
+mongod.exe --configsvr --replSet config --dbpath ./config --bind_ip localhost --port 27010 
+
+
+// Open New Powershell (2)
+//initialize config server 2
+cd Desktop 
+cd mongo_sharding 
+mongod.exe --configsvr --replSet config --dbpath ./config2 --bind_ip localhost --port 27011 
+
+
+//Open new powershell (3)
+//initialize config server 3
+cd Desktop 
+cd mongo_sharding 
+mongod.exe --configsvr --replSet config --dbpath ./config3 --bind_ip localhost --port 27012 
+
+
+//Open new powershell (4)
+//initialize config server replicate sets
+cd Desktop 
+cd mongo_sharding 
+
+mongo --port 27010 
+rs.initiate({ 
+	_id: "config" , 
+	configsvr: true, 
+	members: [ 
+		{ _id: 0, host: "localhost:27010" }, 
+		{ _id: 1, host: "localhost:27011" }, 
+		{ _id: 2, host: "localhost:27012" } 
+	] 
+}) 
+
+exit 
+
+//initialize node server 1.0
+mongod.exe --shardsvr --replSet node1 --dbpath node10 --bind_ip localhost --port 27013 
+
+
+//Open new powershell (5)
+//initialize node server 1.1
+cd Desktop 
+cd mongo_sharding 
+mongod.exe --shardsvr --replSet node1 --dbpath node11 --bind_ip localhost --port 27014 
+
+//Open new powershell (6)***
+//initialize node server 1.2
+cd Desktop 
+cd mongo_sharding 
+mongod.exe --shardsvr --replSet node1 --dbpath node12 --bind_ip localhost --port 27015 
+
+//Open New Powershell (7)
+cd Desktop 
+cd mongo_sharding 
+
+//initialize node server replicate sets
+mongo --port 27013 
+rs.initiate({ 
+	_id: "node1", 
+	members: [ 
+	{ _id: 0, host: "localhost:27013" }, 
+	{ _id: 1, host: "localhost:27014" }, 
+	{ _id: 2, host: "localhost:27015" } 
+	] 
+}) 
+ 
+exit 
+
+//initialize node server 2.0
+mongod.exe --shardsvr --replSet node2 --dbpath node20 --bind_ip localhost --port 27016 
+
+//Open new powershell (8)
+//initialize node server 2.1
+cd Desktop 
+cd mongo_sharding 
+mongod.exe --shardsvr --replSet node2 --dbpath node21 --bind_ip localhost --port 27017 
+
+//Open new powershell (9)
+//initialize node server 2.2
+cd Desktop 
+cd mongo_sharding 
+mongod.exe --shardsvr --replSet node2 --dbpath node22 --bind_ip localhost --port 27018 
+
+
+//Open New Powershell (10)
+//initialize node server replicate sets
+cd Desktop 
+cd mongo_sharding 
+
+mongo --port 27016 
+rs.initiate({ 
+	_id: "node2", 
+	members: [ 
+	{ _id: 0, host: "localhost:27016" }, 
+	{ _id: 1, host: "localhost:27017" }, 
+	{ _id: 2, host: "localhost:27018" } 
+	] 
+}) 
+ 
+exit 
+
+//initialize node server 3.0
+mongod.exe --shardsvr --replSet node3 --dbpath node30 --bind_ip localhost --port 27019 
+
+
+//Open new powershell (11)
+//initialize node server 3.1
+cd Desktop 
+cd mongo_sharding 
+mongod.exe --shardsvr --replSet node3 --dbpath node31 --bind_ip localhost --port 27020 
+
+
+//Open new powershell (12)
+//initialize node server 3.2
+cd Desktop 
+cd mongo_sharding 
+mongod.exe --shardsvr --replSet node3 --dbpath node33 --bind_ip localhost --port 27021 
+
+
+
+//Open Powershell (13)
+//initialize node server replicate sets
+cd Desktop 
+cd mongo_sharding 
+
+mongo --port 27019 
+rs.initiate({ 
+	_id: "node3",
+	members: [
+	{ _id: 0, host: "localhost:27019" }, 
+	{ _id: 1, host: "localhost:27020" }, 
+	{ _id: 2, host: "localhost:27021" } 
+	] 
+}) 
+ 
+exit
+
+//initialize mongos server
+mongos --configdb config/localhost:27010,localhost:27011,localhost:27012 --bind_ip localhost --port 27022 
+
+
+
+//Open Last Powershell (14)
+//connect node servers by logging in to the mongos server
+cd Desktop 
+cd mongo_sharding 
+
+mongo --port 27022 
+sh.addShard('node1/localhost:27013');
+sh.addShard('node2/localhost:27016');
+sh.addShard('node3/localhost:27019');
+
+//enable sharding for the database
+sh.enableSharding('book');
+
+//create index for collection
+db.games.createIndex({ asin: 'hashed' }); 
+
+//shard collection
+sh.shardCollection("book.games", { asin: 'hashed' });
+
+exit
+
+mongoimport --port 27022 --db book --collection games --file "C:\Users\Maida Bruce\Desktop\Data\db\Video_Games_5.json"
+
+mongo --port 27022 book
+db.games.find().count();
+db1 = (new Mongo('localhost:27013')).getDB('book');
+db2 = (new Mongo('localhost:27016')).getDB('book');
+db3 = (new Mongo('localhost:27019')).getDB('book');
+db1.games.count();
+db2.games.count();
+db3.games.count();
+exit
+
